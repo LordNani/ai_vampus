@@ -1,5 +1,7 @@
 package agents;
 
+import logic.Point;
+import logic.ResultNode;
 import wumpus.Agent;
 import wumpus.Environment;
 import wumpus.Player;
@@ -7,10 +9,17 @@ import wumpus.Player;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import static logic.AgentLogic.getCurrentState;
+
 public class bcAgent implements Agent {
     private int w, h;
-    private LinkedList<Environment.Action> nextActions = new LinkedList<Environment.Action>();
     private boolean debug = true;
+
+    private boolean isWumpusAlive = false;
+    private boolean hasGold = false;
+
+    private boolean[][] visited;
+    private LinkedList<Environment.Action> nextActions = new LinkedList<Environment.Action>();
 
     public bcAgent(int w, int h) {
         this.w = w;
@@ -22,25 +31,20 @@ public class bcAgent implements Agent {
         int x = player.getX();
         int y = player.getY();
 
+        // Grab the gold if senses glitter
+        if (player.hasGlitter()) return Environment.Action.GRAB;
+
+        boolean stenching = player.hasStench();
+        boolean breezing = player.hasBreeze();
+        boolean screaming = player.hasScream();
+
         // Apply actions pools
         if (nextActions.size() > 0) {
             return nextActions.poll();
         }
 
-        // Grab the gold if senses glitter
-        if (player.hasGlitter()) return Environment.Action.GRAB;
+        ArrayList<ResultNode> info = getCurrentState(new Point(x,y),stenching,breezing,screaming );
 
-        // Shoot an arrow to every non visited tiles if senses a stench
-        if (player.hasStench()) {
-            // Apply killer instinct
-        }
-
-        // Mark non visited neighbors has dangerous
-        if (player.hasBreeze()) {
-
-        }
-
-        // Print the chosen tile
         if (debug) {
 //            System.out.format("Go to (%d,%d)%n", next[0], next[1]);
         }
