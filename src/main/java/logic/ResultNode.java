@@ -4,10 +4,11 @@ import java.util.ArrayList;
 
 public class ResultNode extends Node{
 
-    ArrayList<ArrayList<Boolean>> clauses;
+    ArrayList<PerceptionNode[]> clauses;
 
-    public ResultNode() {
-        clauses = new ArrayList<ArrayList<Boolean>>();
+    public ResultNode(Point point) {
+        super(point);
+        clauses = new ArrayList();
     }
 
     public void evaluate() {

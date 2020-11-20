@@ -6,7 +6,8 @@ public class PerceptionNode extends Node{
 
     ArrayList<ResultNode> targets;
 
-    public PerceptionNode() {
+    public PerceptionNode(Point point) {
+        super(point);
         targets = new ArrayList<ResultNode>();
     }
 

@@ -1,5 +1,6 @@
 package agents;
 
+import logic.KnowledgeBase;
 import logic.Point;
 import logic.ResultNode;
 import wumpus.Agent;
@@ -9,9 +10,7 @@ import wumpus.Player;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-import static logic.AgentLogic.getCurrentState;
-
-public class bcAgent implements Agent {
+public class BCAgent implements Agent {
     private int w, h;
     private boolean debug = true;
 
@@ -20,10 +19,13 @@ public class bcAgent implements Agent {
 
     private boolean[][] visited;
     private LinkedList<Environment.Action> nextActions = new LinkedList<Environment.Action>();
+    private KnowledgeBase kb;
 
-    public bcAgent(int w, int h) {
+    public BCAgent(int w, int h) {
         this.w = w;
         this.h = h;
+        kb = new KnowledgeBase(w,h);
+        System.out.println("Hi");
     }
 
     @Override
@@ -43,7 +45,7 @@ public class bcAgent implements Agent {
             return nextActions.poll();
         }
 
-        ArrayList<ResultNode> info = getCurrentState(new Point(x,y),stenching,breezing,screaming );
+        ArrayList<ResultNode> info = kb.getCurrentState(new Point(x,y),stenching,breezing,screaming );
 
         if (debug) {
 //            System.out.format("Go to (%d,%d)%n", next[0], next[1]);

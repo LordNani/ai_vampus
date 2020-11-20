@@ -23,6 +23,11 @@ public class Point implements Cloneable {
         return x == ((Point) player_pos).x && y == ((Point) player_pos).y;
     }
 
+    @Override
+    public int hashCode(){
+        return x*0xFFFF+y;
+    }
+
     public int squaredDistance(Point target) {
         return (((Point) target).x - x) * (((Point) target).x - x) + (((Point) target).y - y) * (((Point) target).y - y);
     }

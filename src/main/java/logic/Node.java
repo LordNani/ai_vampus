@@ -2,8 +2,12 @@ package logic;
 
 public class Node {
     boolean isEvaluated = false;
-    Boolean value = false;
-    Point coords = new Point();
+    boolean value = false;
+    Point coords;
+
+    public Node(Point p){
+        coords = p;
+    }
 
     public void evaluate() {
         isEvaluated = true;
