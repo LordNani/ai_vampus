@@ -1,5 +1,6 @@
 package agents;
 
+
 import logic.KnowledgeBase;
 import logic.Point;
 import logic.ResultNode;
@@ -45,14 +46,15 @@ public class BCAgent implements Agent {
             return nextActions.poll();
         }
 
-        ArrayList<ResultNode> info = kb.getCurrentState(new Point(x,y),stenching,breezing,screaming );
+        ArrayList<ResultNode>[] info =
+                kb.getCurrentState(new Point(x,y),stenching,breezing,screaming );
 
         if (debug) {
 //            System.out.format("Go to (%d,%d)%n", next[0], next[1]);
         }
 
         // Auto execute the first action
-        return nextActions.poll();
+        return Environment.Action.GO_FORWARD;
     }
 
     @Override

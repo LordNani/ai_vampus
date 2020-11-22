@@ -9,15 +9,8 @@ public class Node {
         coords = p;
     }
 
-    public void evaluate() {
-        isEvaluated = true;
-    }
-
-    public void deEvaluate() {
-        isEvaluated = false;
-    }
-
-    public void setValue(Boolean val){
+    public void setValue(boolean val){
+        isEvaluated=true;
         value = val;
     }
 }

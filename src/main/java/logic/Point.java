@@ -1,6 +1,6 @@
 package logic;
 
-public class Point implements Cloneable {
+public class Point implements Cloneable, Comparable {
     public int x;
     public int y;
 
@@ -23,10 +23,11 @@ public class Point implements Cloneable {
         return x == ((Point) player_pos).x && y == ((Point) player_pos).y;
     }
 
-    @Override
-    public int hashCode(){
-        return x*0xFFFF+y;
-    }
+//
+//    @Override
+//    public int hashCode(){
+//        return x*0xFFF+y;
+//    }
 
     public int squaredDistance(Point target) {
         return (((Point) target).x - x) * (((Point) target).x - x) + (((Point) target).y - y) * (((Point) target).y - y);
@@ -42,4 +43,11 @@ public class Point implements Cloneable {
         return new Point(x, y);
     }
 
+    @Override
+    public int compareTo(Object o) {
+        if(x==((Point)o).x){
+            return Integer.compare(y, ((Point)o).y);
+        }
+        return Integer.compare(x, ((Point)o).x);
+    }
 }
