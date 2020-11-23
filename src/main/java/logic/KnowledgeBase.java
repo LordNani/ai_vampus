@@ -97,18 +97,29 @@ public class KnowledgeBase {
 		if(!node.isEvaluated){
 			node.setValue(true);
             perception_nodes.get(pos)[(node_i+1)%2].setValue(false);
-			for(int target_id = 0; target_id < node.targets.size(); ++target_id){
-                ResultNode target = node.targets.get(target_id);
-			    if(!target.isEvaluated){
-                    Boolean value = target.evaluate();
-                    if(value!=null){
-                        target.setValue(value);
-                        result_nodes.get(target.getCoords())[(node_i+1)%2].setValue(!value);
-                        updated.add((feelsBreeze) ? target : result_nodes.get(target.getCoords())[(node_i+1)%2]);
+            ArrayList<ResultNode> target_list = node.targets;
+            while(!target_list.isEmpty()){
+                ArrayList<ResultNode> new_generation = new ArrayList<>();
+                for(int target_id = 0; target_id < node.targets.size(); ++target_id){
+                    ResultNode target = node.targets.get(target_id);
+                    if(!target.isEvaluated){
+                        Boolean value = target.evaluate();
+                        if(value!=null){
+                            target.setValue(value);
+                            result_nodes.get(target.getCoords())[(node_i+1)%2].setValue(!value);
+                            updated.add(result_nodes.get(target.getCoords())[0]);
+
+                            for(ResultNode resultNode : target.targets){
+                                if(!new_generation.contains(resultNode)){
+                                    new_generation.add(resultNode);
+                                }
+                            }
+                        }
                     }
                 }
+                target_list = new_generation;
+            }
 
-			}
 		}
 		return updated;
     }

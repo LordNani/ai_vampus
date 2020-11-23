@@ -5,10 +5,12 @@ import java.util.ArrayList;
 public class ResultNode extends Node{
 
     ArrayList<Node[]> clauses;
+    ArrayList<ResultNode> targets;
 
     public ResultNode(Point point, boolean positive) {
         super(point, positive);
         clauses = new ArrayList();
+        targets = new ArrayList<>();
     }
 
     public boolean canBeEvaluated() {
