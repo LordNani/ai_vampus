@@ -18,10 +18,10 @@ public class KnowledgeBase {
                 PerceptionNode[] point_stench_nodes = new PerceptionNode[2];
                 ResultNode[] point_wumpus_nodes = new ResultNode[2];
                 for(int k=0; k<2; ++k){
-                    point_breeze_nodes[k] = new PerceptionNode(point);
-                    point_stench_nodes[k] = new PerceptionNode(point);
-                    point_pit_nodes[k] = new ResultNode(point);
-                    point_wumpus_nodes[k] = new ResultNode(point);
+                    point_breeze_nodes[k] = new PerceptionNode(point, k==0);
+                    point_stench_nodes[k] = new PerceptionNode(point, k==0);
+                    point_pit_nodes[k] = new ResultNode(point, k==0);
+                    point_wumpus_nodes[k] = new ResultNode(point, k==0);
                 }
                 breeze_nodes.put(point, point_breeze_nodes);
                 pit_nodes.put(point, point_pit_nodes);
@@ -67,6 +67,10 @@ public class KnowledgeBase {
 //                wumpus_nodes.get(point)[0].clauses.add(w_and_list);
             }
         }
+        pit_nodes.get(new Point(0,3))[0].setValue(false);
+        pit_nodes.get(new Point(0,3))[1].setValue(true);
+        wumpus_nodes.get(new Point(0,3))[0].setValue(false);
+        wumpus_nodes.get(new Point(0,3))[1].setValue(true);
     }
 
     private ArrayList<Point> getNeighbours(Point point, int w, int h) {
@@ -91,16 +95,16 @@ public class KnowledgeBase {
         int node_i = (feelsBreeze) ? 0 : 1;
     	PerceptionNode node = perception_nodes.get(pos)[node_i];
 		if(!node.isEvaluated){
-			node.setValue(feelsBreeze);
-            perception_nodes.get(pos)[(node_i+1)%2].setValue(!feelsBreeze);
+			node.setValue(true);
+            perception_nodes.get(pos)[(node_i+1)%2].setValue(false);
 			for(int target_id = 0; target_id < node.targets.size(); ++target_id){
                 ResultNode target = node.targets.get(target_id);
 			    if(!target.isEvaluated){
                     Boolean value = target.evaluate();
                     if(value!=null){
                         target.setValue(value);
-                        result_nodes.get(target.coords)[(node_i+1)%2].setValue(!value);
-                        updated.add(target);
+                        result_nodes.get(target.getCoords())[(node_i+1)%2].setValue(!value);
+                        updated.add((feelsBreeze) ? target : result_nodes.get(target.getCoords())[(node_i+1)%2]);
                     }
                 }
 

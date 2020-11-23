@@ -6,8 +6,8 @@ public class ResultNode extends Node{
 
     ArrayList<Node[]> clauses;
 
-    public ResultNode(Point point) {
-        super(point);
+    public ResultNode(Point point, boolean positive) {
+        super(point, positive);
         clauses = new ArrayList();
     }
 
@@ -19,23 +19,25 @@ public class ResultNode extends Node{
     }
 
     protected boolean isFullyDefined(Node[] and_group) {
-        boolean exist_undefined = false;
+        boolean all_defined = true;
         for(Node clause : and_group){
-            exist_undefined |= !clause.isEvaluated;
+            all_defined &= clause.isEvaluated;
         }
-        return !exist_undefined;
+        return all_defined;
     }
 
     public Boolean evaluate() {
+        if(!canBeEvaluated()) return null;
+        boolean or_result = false;
         for(Node[] and_group : clauses){
             if(isFullyDefined(and_group)){
                 boolean and_result = true;
                 for(Node clause : and_group){
                     and_result &= clause.value;
                 }
-                return and_result;
+                or_result |= and_result;
             }
         }
-        return null;
+        return or_result;
     }
 }
