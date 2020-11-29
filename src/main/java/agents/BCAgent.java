@@ -89,7 +89,7 @@ public class BCAgent implements Agent {
 						path_copy.addLast(tile.getCoords());
 						updateShortestWays(tile.getCoords(), path_copy);
 					}
-					else{
+					else if(hasPit[tile.getCoords().x][tile.getCoords().y]==2 || hasWumpus[tile.getCoords().x][tile.getCoords().y]==2){
 						dangerousTiles.add(tile.getCoords());
 					}
 				}
@@ -100,7 +100,7 @@ public class BCAgent implements Agent {
 			nextActions = createActionPathTo(new Point(0,3));
 		}
 		else{
-			Point nextVertex = unvisitedSafeTiles.pollFirst();
+			Point nextVertex = unvisitedSafeTiles.pollLast();
 			visitedTiles.add(nextVertex);
 			nextActions = createActionPathTo(nextVertex);
 		}
@@ -113,35 +113,42 @@ public class BCAgent implements Agent {
 		}
 	}
 
-	private LinkedList<Environment.Action> createActionPathTo(Point nextVertex) {
+	public LinkedList<Environment.Action> createActionPathTo(Point nextVertex) {
 		LinkedList<Point> planned_path = createPathTo(nextVertex);
 		LinkedList<Environment.Action> result = new LinkedList<>();
 
 		int curr_dir = current_direction.ordinal();
+		Point temp_point = current_loc;
 		for(Point p : planned_path){
-			if(!p.equals(current_loc)){
-				int next_direction = current_loc.directionTo(p);
-				if(next_direction == curr_dir+1){
+			if(!p.equals(temp_point)){
+				int next_direction = temp_point.directionTo(p);
+				if(next_direction == (curr_dir+1)%4){
 					curr_dir = (curr_dir+1)%4;
 					result.add(Environment.Action.TURN_RIGHT);
 				}
-				else if(next_direction+1 == curr_dir){
+				else if(next_direction == (curr_dir+3)%4){
 					curr_dir = (curr_dir+3)%4;
 					result.add(Environment.Action.TURN_LEFT);
 				}
-				else{
+				else if((next_direction-curr_dir+4)%4==2){
 					result.add(Environment.Action.TURN_LEFT);
 					result.add(Environment.Action.TURN_LEFT);
 					curr_dir = (curr_dir+2)%4;
 					System.out.println("Double turn");
 				}
 				result.add(Environment.Action.GO_FORWARD);
+				temp_point=p;
 			}
 		}
 		return result;
 	}
 
 	private LinkedList<Point> createPathTo(Point nextVertex) {
+		if(current_loc.isConnected(nextVertex)){
+			LinkedList<Point> list = new LinkedList<>();
+			list.add(nextVertex);
+			return list;
+		}
 		LinkedList<Point> res_path = new LinkedList<>();
 		// Need to optimize later
 		int first_different_index = Math.min(shortest_ways.get(current_loc).size(), shortest_ways.get(nextVertex).size());
