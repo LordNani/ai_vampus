@@ -65,6 +65,12 @@ public class BCAgent implements Agent {
 
         // Apply actions pools
         if (nextActions.size() > 0) {
+//			if((current_loc.equals(new Point(1,3)) && current_direction.equals(Player.Direction.W)
+//				||
+//				current_loc.equals(new Point(0,2)) && current_direction.equals(Player.Direction.S))
+//				&& nextActions.getFirst().equals(Environment.Action.GO_FORWARD)){
+//				System.out.println("dd");
+//			}
             return nextActions.poll();
         }
 
@@ -78,6 +84,7 @@ public class BCAgent implements Agent {
 			if(wumpus_tile.getValue()){
 				wumpus_found=true;
 				wumpus_location = wumpus_tile.getCoords();
+				System.out.println("Wumpus found on "+wumpus_location);
 			}
 		}
 		for(int i=0; i<2; ++i){
@@ -96,6 +103,12 @@ public class BCAgent implements Agent {
 			}
 		}
 
+		String str = "";
+		for(Point tile : unvisitedSafeTiles){
+			str+=tile.toString()+" ";
+		}
+		System.out.println(str);
+
 		if(unvisitedSafeTiles.isEmpty()){
 			nextActions = createActionPathTo(new Point(0,3));
 		}
@@ -104,6 +117,9 @@ public class BCAgent implements Agent {
 			visitedTiles.add(nextVertex);
 			nextActions = createActionPathTo(nextVertex);
 		}
+//		if(nextActions.getFirst().equals(new Point(0,3))){
+//			System.out.println("dd");
+//		}
 		return nextActions.pollFirst();
     }
 
@@ -179,8 +195,8 @@ public class BCAgent implements Agent {
     @Override
     public void afterAction(Player player) {
         if (debug) {
-            System.out.println(player.render());
-            System.out.println(player.debug());
+//            System.out.println(player.render());
+//            System.out.println(player.debug());
         }
     }
 }
