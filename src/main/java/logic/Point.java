@@ -14,6 +14,11 @@ public class Point implements Cloneable, Comparable {
         this.y = position.y;
     }
 
+    public Point(logic.pathfinder.Point position) {
+        this.x = position.x;
+        this.y = position.y;
+    }
+
     @Override
     public boolean equals(Object player_pos) {
         return x == ((Point) player_pos).x && y == ((Point) player_pos).y;
@@ -30,7 +35,7 @@ public class Point implements Cloneable, Comparable {
     }
 
     public boolean isConnected(Point v) {
-        return ((Point) v).x == x || ((Point) v).y == y;
+        return (squaredDistance(v)==1) && (((Point) v).x == x || ((Point) v).y == y);
     }
 
     public int directionTo(Point point) {

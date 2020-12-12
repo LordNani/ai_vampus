@@ -1,8 +1,8 @@
-package logic;
+package logic.pathfinder;
 
 import java.util.LinkedList;
 
-public class VertexPoint extends Point {
+public class VertexPoint extends logic.pathfinder.Point implements EuclidVertex {
     LinkedList<Integer> path;
 
     public VertexPoint(int x, int y, LinkedList<Integer> path) {
@@ -15,7 +15,7 @@ public class VertexPoint extends Point {
         this.path = ((LinkedList<Integer>) vp.path.clone());
     }
 
-    public VertexPoint(Point p) {
+    public VertexPoint(logic.pathfinder.Point p) {
         super(p.x, p.y);
         this.path = new LinkedList<>();
     }
@@ -32,5 +32,15 @@ public class VertexPoint extends Point {
 
     public LinkedList<Integer> getPath() {
         return path;
+    }
+
+    @Override
+    public int squaredDistance(EuclidVertex v) {
+        return squaredDistance((Point)v);
+    }
+
+    @Override
+    public int getCostOfWayTo(EuclidVertex v) {
+        return squaredDistance((Point)v);
     }
 }

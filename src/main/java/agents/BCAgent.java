@@ -4,6 +4,7 @@ package agents;
 import logic.KnowledgeBase;
 import logic.Point;
 import logic.ResultNode;
+import logic.pathfinder.MapGraph;
 import wumpus.Agent;
 import wumpus.Environment;
 import wumpus.Player;
@@ -14,13 +15,12 @@ public class BCAgent implements Agent {
     private int w, h;
     private boolean debug = true;
 
-    private boolean isWumpusAlive = false;
-    private boolean hasGold = false;
     LinkedList<Point> unvisitedSafeTiles = new LinkedList<>();
 	LinkedList<Point> visitedTiles = new LinkedList<>();
 	LinkedList<Point> dangerousTiles = new LinkedList<>();
 	Point current_loc;
 	Player.Direction current_direction;
+    final Point start_point = new Point(0,3);
 
 //    private boolean[][] visited;
     private int[][] hasWumpus;
@@ -34,9 +34,9 @@ public class BCAgent implements Agent {
     private KnowledgeBase kb;
 	private boolean wumpus_found = false;
 	private Point wumpus_location;
+	private boolean wumpus_killed = false;
 
 	LinkedList<Point> current_path = new LinkedList<>();
-	TreeMap<Point, LinkedList<Point>> shortest_ways = new TreeMap<>();
 
 	public BCAgent(int w, int h) {
         this.w = w;
@@ -54,10 +54,14 @@ public class BCAgent implements Agent {
         current_loc = new Point(x,y);
         current_direction = player.getDirection();
 		current_path.add(current_loc.clone());
-		updateShortestWays(current_loc, current_path);
 
+		if(player.hasScream()) wumpus_killed=true;
         // Grab the gold if senses glitter
         if (player.hasGlitter()) return Environment.Action.GRAB;
+        if (wumpus_found && !wumpus_killed && wumpus_location.isConnected(current_loc)){
+			nextActions = turnAndKillWumpus(current_direction, current_loc, wumpus_location);
+			return nextActions.pollFirst();
+		}
 
         boolean stenching = player.hasStench();
         boolean breezing = player.hasBreeze();
@@ -94,7 +98,6 @@ public class BCAgent implements Agent {
 						unvisitedSafeTiles.add(tile.getCoords());
 						LinkedList<Point> path_copy = (LinkedList<Point>) current_path.clone();
 						path_copy.addLast(tile.getCoords());
-						updateShortestWays(tile.getCoords(), path_copy);
 					}
 					else if(hasPit[tile.getCoords().x][tile.getCoords().y]==2 || hasWumpus[tile.getCoords().x][tile.getCoords().y]==2){
 						dangerousTiles.add(tile.getCoords());
@@ -102,20 +105,25 @@ public class BCAgent implements Agent {
 				}
 			}
 		}
-
-		String str = "";
-		for(Point tile : unvisitedSafeTiles){
-			str+=tile.toString()+" ";
+        printUnvisitedSafeTiles();
+		try {
+			if(wumpus_found && !wumpus_killed){
+				nextActions = goToWumpus();
+				if(nextActions!=null) {
+					if(nextActions.isEmpty()) nextActions = turnAndKillWumpus(current_direction, current_loc, wumpus_location);
+					return nextActions.pollFirst();
+				}
+			}
+			if(unvisitedSafeTiles.isEmpty()) {
+				nextActions = createActionPathTo(new Point(0, 3));
+			} else {
+				Point nextVertex = unvisitedSafeTiles.pollLast();
+				visitedTiles.add(nextVertex);
+				nextActions = createActionPathTo(nextVertex);
+			}
 		}
-		System.out.println(str);
-
-		if(unvisitedSafeTiles.isEmpty()){
-			nextActions = createActionPathTo(new Point(0,3));
-		}
-		else{
-			Point nextVertex = unvisitedSafeTiles.pollLast();
-			visitedTiles.add(nextVertex);
-			nextActions = createActionPathTo(nextVertex);
+		catch (NoSuchElementException e){
+			nextActions = createActionPathTo(new Point(0, 3));
 		}
 //		if(nextActions.getFirst().equals(new Point(0,3))){
 //			System.out.println("dd");
@@ -123,13 +131,69 @@ public class BCAgent implements Agent {
 		return nextActions.pollFirst();
     }
 
-	private void updateShortestWays(Point point, LinkedList<Point> path) {
-		if(!shortest_ways.containsKey(point) || shortest_ways.get(point).size() > path.size()){
-			shortest_ways.put(point, path);
+	private LinkedList<Environment.Action> turnAndKillWumpus(Player.Direction current_direction, Point current_loc, Point wumpus_location) {
+		LinkedList<Environment.Action> result = new LinkedList<>();
+		int needed_dir = current_loc.directionTo(wumpus_location);
+		int current_dir = current_direction.ordinal();
+		while (needed_dir != current_dir){
+			switch ((4+needed_dir-current_dir)%4){
+				case 0: current_dir=needed_dir;
+						break;
+				case 1: current_dir++;
+				        result.addLast(Environment.Action.TURN_RIGHT);
+				        break;
+				case 2: result.addLast(Environment.Action.TURN_RIGHT);
+						result.addLast(Environment.Action.TURN_RIGHT);
+						break;
+				case 3: current_dir--;
+						result.addLast(Environment.Action.TURN_LEFT);
+
+			}
+		}
+		result.addLast(Environment.Action.SHOOT_ARROW);
+		return result;
+	}
+
+	private Player.Direction translateToDirection(int directionTo) {
+		switch (directionTo){
+			case 0: return Player.Direction.N;
+			case 1: return Player.Direction.E;
+			case 2: return Player.Direction.S;
+			default: return Player.Direction.W;
 		}
 	}
 
-	public LinkedList<Environment.Action> createActionPathTo(Point nextVertex) {
+	private LinkedList<Environment.Action> goToWumpus() {
+		ArrayList<Point> wumpus_neighbours = new ArrayList<>();
+		for(Point point : visitedTiles){
+			if(point.isConnected(wumpus_location)) wumpus_neighbours.add(point);
+		}
+		for(Point point : unvisitedSafeTiles){
+			if(point.isConnected(wumpus_location)) wumpus_neighbours.add(point);
+		}
+		if(wumpus_neighbours.isEmpty()) return null;
+		LinkedList<Environment.Action> best = createActionPathTo(wumpus_neighbours.get(0));
+		int min_size = best.size();
+		for(int i=1; i<wumpus_neighbours.size(); ++i){
+			LinkedList<Environment.Action> candidate = createActionPathTo(wumpus_neighbours.get(i));
+			if(candidate.size() < min_size){
+				min_size = candidate.size();
+				best = candidate;
+			}
+		}
+
+		return best;
+	}
+
+	private void printUnvisitedSafeTiles() {
+		String str = "";
+		for(Point tile : unvisitedSafeTiles){
+			str+=tile.toString()+" ";
+		}
+		System.out.println(str);
+	}
+
+	public LinkedList<Environment.Action> createActionPathTo(Point nextVertex) throws NoSuchElementException {
 		LinkedList<Point> planned_path = createPathTo(nextVertex);
 		LinkedList<Environment.Action> result = new LinkedList<>();
 
@@ -159,30 +223,29 @@ public class BCAgent implements Agent {
 		return result;
 	}
 
-	private LinkedList<Point> createPathTo(Point nextVertex) {
-		if(current_loc.isConnected(nextVertex)){
-			LinkedList<Point> list = new LinkedList<>();
-			list.add(nextVertex);
-			return list;
-		}
-		LinkedList<Point> res_path = new LinkedList<>();
-		// Need to optimize later
-		int first_different_index = Math.min(shortest_ways.get(current_loc).size(), shortest_ways.get(nextVertex).size());
-		for (int i = 0; i < first_different_index; ++i) {
-			if (shortest_ways.get(current_loc).get(i) != shortest_ways.get(nextVertex).get(i)) {
-				first_different_index = i;
-				break;
-			}
-		}
-		for (int j = first_different_index; j < shortest_ways.get(current_loc).size(); ++j){
-			res_path.addFirst(shortest_ways.get(current_loc).get(j));
-		}
-		if(first_different_index != 0) res_path.addLast(shortest_ways.get(current_loc).get(first_different_index-1));
-		for (int j = first_different_index; j < shortest_ways.get(nextVertex).size(); ++j) {
-			res_path.addLast(shortest_ways.get(nextVertex).get(j));
-		}
-		return res_path;
+	private LinkedList<Point> createPathTo(Point nextVertex) throws NoSuchElementException {
+		MapGraph graph = new MapGraph(
+				(nextVertex.equals(start_point) || current_loc.equals(start_point)) ? getFullBooleanMap() : getBooleanMap());
+		return graph.shortestWay(graph.getTile(current_loc), graph.getTile(nextVertex));
 	}
+
+	private boolean[][] getBooleanMap() {
+		boolean[][] result = new boolean[w][w];
+		for(Point point : visitedTiles){
+			if(!point.equals(start_point)) result[point.x][point.y]=true;
+		}
+		for(Point point : unvisitedSafeTiles){
+			result[point.x][point.y]=true;
+		}
+		return result;
+	}
+
+	private boolean[][] getFullBooleanMap() {
+		boolean[][] result = getBooleanMap();
+		result[0][3]=true;
+		return result;
+	}
+
 
 	@Override
     public void beforeAction(Player player) {
