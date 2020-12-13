@@ -59,6 +59,8 @@ public class Environment {
         if (player.isDead()) sum += -1000;
         // Score if have picked the gold
         if (player.hasGold()) sum += +1000;
+        // Score if killed wumpus
+        if(player.killedWumpus()) sum += +1000;
         // Calculate the score for each action
         for(Action action : player.getActions()) {
             switch (action) {

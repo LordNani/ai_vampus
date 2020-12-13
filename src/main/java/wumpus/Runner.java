@@ -57,4 +57,8 @@ public class Runner implements Iterable<Player>, Iterator<Player> {
     public void remove() {
         throw new UnsupportedOperationException();
     }
+
+    public int getIterations() {
+        return iterations;
+    }
 }

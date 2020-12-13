@@ -11,6 +11,7 @@ import wumpus.Environment.Perception;
  * it until reaches the end.
  */
 public class Player extends Object {
+
     public enum Direction {
         N, E, S, W
     }
@@ -25,7 +26,8 @@ public class Player extends Object {
     private Direction direction = Direction.E;
     private boolean alive = true;
     private boolean gold = false;
-    private int arrows = 3;
+    private int arrows = 1;
+    private boolean killed_wumpus = false;
 
     /**
      * Creates a new Player for the given world.
@@ -55,8 +57,9 @@ public class Player extends Object {
      * Resets the player state.
      */
     protected void reset() {
-        arrows = 3;
+        arrows = 1;
         gold = false;
+        killed_wumpus = false;
         direction = Direction.E;
         actions.clear();
     }
@@ -120,6 +123,7 @@ public class Player extends Object {
             // Hear a scream after if killed Wumpus
             if (neighbor != null && neighbor.contains(Element.WUMPUS)) {
                 neighbor.remove(Element.WUMPUS);
+                killed_wumpus=true;
                 // Add the Scream to the current perception
                 return Perception.SCREAM;
             }
@@ -353,5 +357,9 @@ public class Player extends Object {
         output.append("Perceptions: ").append(perceptions.toString());
 
         return output.toString();
+    }
+
+    public boolean killedWumpus() {
+        return killed_wumpus;
     }
 }

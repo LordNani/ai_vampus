@@ -34,6 +34,8 @@ public class World {
     private final Player player;
     private final Tile[] tiles;
 
+    private Runner runner;
+
     /**
      * Creates a new world with given dimensions.
      * @param width The horizontal constraint of the board
@@ -66,8 +68,8 @@ public class World {
      */
     public void execute(Agent agent) throws InterruptedException {
         agentName = agent.getClass().getName();
-
-        for (Player player : run()) {
+        runner = run();
+        for (Player player : runner) {
             agent.beforeAction(player);
             Action actions = agent.getAction(player);
             player.setAction(actions);
@@ -260,7 +262,7 @@ public class World {
      * @return The outcome of the game
      */
     public Environment.Result getResult() {
-        if (player.isAlive() && player.hasGold() && player.getTile().getIndex() == startPosition) {
+        if (player.isAlive() && player.getTile().getIndex() == startPosition && runner.getIterations() != 0) {
             return Environment.Result.WIN;
         }
         return Environment.Result.LOOSE;
